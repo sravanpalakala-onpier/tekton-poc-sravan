@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    managed-by: argocd.argoproj.io
+  name: repo-gitops
+  namespace: argocd
+type: Opaque
+stringData:
+  username: tekton
+  password: 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
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: cicd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  repositories: |
+    - url: https://github.com/sravanpalakala-onpier/tekton-poc-sravan
+      passwordSecret:
+        name: repo-gitops
+        key: password
+      usernameSecret:
+        name: repo-gitops
+        key: username

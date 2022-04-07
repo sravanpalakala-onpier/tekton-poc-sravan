@@ -1,0 +1,23 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: github-pr
+  namespace: cicd
+spec:
+  serviceAccountName: git-push-service-account
+  triggers:
+    - name: github-listener
+      interceptors:
+        - ref:
+            name: "github"
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-interceptor-secret
+                secretKey: secretToken
+            - name: "eventTypes"
+              value: ["pull_request", "push"]
+      bindings:
+        - ref: github-pr-binding
+      template:
+        ref: example-ci-pipeline-template

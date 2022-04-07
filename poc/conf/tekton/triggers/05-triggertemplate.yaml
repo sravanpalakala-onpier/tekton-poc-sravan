@@ -1,0 +1,45 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: example-ci-pipeline-template
+  namespace: cicd
+spec:
+  params:
+    - name: gitrevision
+      description: The git revision (SHA)
+      default: master
+    - name: gitrepositoryurl
+      description: The git repository url ("https://github.com/foo/bar.git")
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: products-ci-pipelinerun-
+      spec:
+        pipelineRef:
+          name: example-ci-pipeline
+        serviceAccountName: git-push-service-account
+        params:
+          - name: url
+            value: $(tt.params.gitrepositoryurl)
+          - name: url-gitops
+            value: $(tt.params.gitrepositoryurl)
+          - name: branch
+            value: $(tt.params.gitrevision)
+          - name: working-dir
+            value: './resources/sources-repo/services/products'
+          - name: sonar-url
+            value: 'http://sonarqube-service:9000'
+          - name: image-name
+            value: 'host.k3d.internal:5000/products'
+          - name: deployments-dir
+            value: '/resources/gitops-repo/services/products'
+          - name: deployment-file
+            value: 'products.yaml'
+        workspaces:
+          - name: maven-settings
+            configMap:
+              name: maven-settings
+          - name: ws
+            persistentVolumeClaim:
+              claimName: shared-workspace
